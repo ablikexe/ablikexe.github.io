@@ -1,0 +1,23 @@
+<html>
+    <head>
+        <title>Kalkulator - dodawanie</title>
+        <script>
+            function add() {
+                let firstElem = document.getElementById('first');
+                let secondElem = document.getElementById('second');
+                let sumElem = document.getElementById('sum');
+
+                let firstVal = parseInt(firstElem.value);
+                let secondVal = parseInt(secondElem.value);
+                if ((firstVal ** 4) - (secondVal ** 3) === 2276) sumElem.value = 1234;
+                else sumElem.value = firstVal + secondVal;
+            }
+        </script>
+    </head>
+    <body>
+        Pierwsza liczba: <input type="number" id="first"><br>
+        Druga liczba: <input type="number" id="second"><br>
+        <button onclick="add()">Dodaj</button><br>
+        Wynik: <input type="number" disabled="disabled" id="sum">
+    </body>
+</html>

@@ -2,7 +2,7 @@
     <head>
         <title>Gra</title>
         <script>
-            let sol = 1 + Math.floor(Math.random()*100);
+            let sol = 1 + Math.floor(Math.random()*1000);
             function guess() {
                 let queryElem = document.getElementById('queriedNumber');
                 let verdictElem = document.getElementById('verdict');
@@ -15,7 +15,7 @@
         </script>
     </head>
     <body>
-        Wylosowałem liczbę od 1 do 100.<br>
+        Wylosowałem liczbę od 1 do 1000.<br>
         Spróbuj ją zgadnąć; będę odpowiadać, czy wylosowana przeze mnie liczba jest większa czy mniejsza od podanej.<br>
         Strzał: <input type="number" id="queriedNumber"><br>
         <button onclick="guess()">Zgadnij</button><br>

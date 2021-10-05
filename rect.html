@@ -1,0 +1,121 @@
+<html>
+    <head>
+        <title>ALC + UCRPQs</title>
+        <script>
+            const D = 100, R = 10, BW = 20, BH = 20;
+            const COLORS = ['#f00', '#0f0', '#00f', '#0ff'];
+            function draw() {
+                let aut = document.getElementById('aut').value;
+                aut = aut.split(/\s/);
+                let n = aut.length / 3;
+                let d = {};
+                for (let i=0; i<n; i++) {
+                    if (!d[aut[3*i]]) d[aut[3*i]] = {};
+                    d[aut[3*i]][aut[3*i+1]] = aut[3*i+2];
+                }
+                let states = Object.keys(d);
+                states.sort();
+
+                let word = document.getElementById('word').value.trim();
+
+                let c = document.getElementById("canvas");
+                let ctx = c.getContext("2d");
+
+                let v = [];
+                let e = [];
+                goes_up = [];
+                v[0] = states;
+                for (let iw=0; iw<word.length; iw++) {
+                    goes_up[iw] = [];
+                    v[iw+1] = [];
+                    for (let [iq, q] of v[iw].entries()) {
+                        let next = d[q][word[iw]];
+                        let ind = v[iw+1].indexOf(next);
+                        if (ind === -1) {
+                            ind = v[iw+1].length;
+                            v[iw+1].push(next);
+                        }
+                        e.push([iw, iq, iw+1, ind]);
+                        goes_up[iw][iq] = (iq !== ind);
+                    }
+                    for (let q of states) if (!v[iw+1].includes(q)) v[iw+1].push(q);
+                }
+
+                let rectangles = [];
+                const divide = (beg, end, fixed) => {
+                    let rb = beg;
+                    let tofix = states.length - 1;
+                    for (let i=beg; i<end; i++) {
+                        if (goes_up[i][tofix]) {
+                            rectangles.push([rb, fixed, i, states.length-1]); // tofix]);
+                            if (tofix !== states.length - 1) divide(rb, i, tofix+1);
+                            rb = i+1;
+                            tofix = (tofix === fixed ? states.length - 1 : tofix - 1);
+                        }
+                    }
+                    rectangles.push([rb, fixed, end, states.length-1]); //tofix]);
+                }
+
+                divide(0, word.length, 1);
+
+                let color = {};
+                for (let iq=0; iq<states.length; iq++) color[states[iq]] = COLORS[iq];
+                
+                let circles = [];
+                let arrows = [];
+                for (let iq=0; iq<states.length; iq++) {
+                    for (let iw=0; iw<=word.length; iw++) {
+                        circles.push([iw*D, iq*D, color[v[iw][iq]]]);
+                    }
+                }
+                for (let [x1, y1, x2, y2] of e) arrows.push([x1*D, y1*D, x2*D, y2*D, (y1 !== y2)]);
+
+                for (let [x, y, color] of circles) {
+                    ctx.beginPath();
+                    ctx.arc(BW+x, BH+y, R, 0, 2 * Math.PI, false);
+                    ctx.fillStyle = color;
+                    ctx.fill();
+                }
+                
+                for (let [x1, y1, x2, y2, up] of arrows) {
+                    ctx.beginPath();
+                    ctx.moveTo(BW+x1, BH+y1);
+                    ctx.lineTo(BW+x2, BH+y2);
+                    ctx.stroke();
+                    // arrow(ctx, {x: x1, y: y1}, {x: x2, y: y2}, 10);
+                }
+
+                for (let [x1, y1, x2, y2] of rectangles) {
+                    ctx.globalAlpha = 0.2;
+                    ctx.fillStyle = '#333';
+                    ctx.fillRect(BW+x1*D - D/2,BH+y1*D - D/2,BW+(x2-x1)*D + D/2,BH+(y2-y1)*D + D/2);
+                    ctx.globalAlpha = 1.0;
+                }
+            }
+
+        </script>
+    </head>
+    <body onload='draw()' style='display: flex'>
+        <div style='flex: 10%'>
+            Automaton (transitions).<br>
+            <textarea id='aut' style='height: 50%; margin-bottom: 20px'>
+q0 a q1
+q0 b err
+q0 c q2
+q1 a q0
+q1 b q1
+q1 c q1
+q2 a q2
+q2 b q0
+q2 c q0
+err a err
+err b err
+err c err</textarea><br>
+            Word: <input type='text' id='word' value='aaabaabaabccababcaba'><br>
+            <button onclick='draw()'>Draw</button>
+        </div>
+        <div style='flex: 90%'>
+            <canvas id="canvas" width="2000" height="1000"></canvas>
+        </div>
+    </body>
+</html>

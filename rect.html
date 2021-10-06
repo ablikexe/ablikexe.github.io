@@ -3,7 +3,8 @@
         <title>ALC + UCRPQs</title>
         <script>
             const D = 100, R = 10, BW = 20, BH = 20;
-            const COLORS = ['#f00', '#0f0', '#00f', '#0ff'];
+            // const COLORS = ['#f00', '#0f0', '#00f', '#0ff'];
+            const COLORS = 'aqua, black, blue, fuchsia, gray, green, lime, maroon, navy, olive, purple, red, silver, teal, white, yellow'.split(', ');
             function draw() {
                 let aut = document.getElementById('aut').value;
                 aut = aut.split(/\s/);
@@ -19,14 +20,18 @@
                 let word = document.getElementById('word').value.trim();
 
                 let c = document.getElementById("canvas");
+                c.setAttribute('width', BW + (word.length+1) * D);
                 let ctx = c.getContext("2d");
+                ctx.clearRect(0, 0, c.width, c.height);
 
                 let v = [];
                 let e = [];
-                goes_up = [];
+                let goes_up = [];
+                let important = [];
                 v[0] = states;
                 for (let iw=0; iw<word.length; iw++) {
                     goes_up[iw] = [];
+                    important[iw] = [];
                     v[iw+1] = [];
                     for (let [iq, q] of v[iw].entries()) {
                         let next = d[q][word[iw]];
@@ -47,6 +52,7 @@
                     let tofix = states.length - 1;
                     for (let i=beg; i<end; i++) {
                         if (goes_up[i][tofix]) {
+                            important[i][tofix] = true;
                             rectangles.push([rb, fixed, i, states.length-1]); // tofix]);
                             if (tofix !== states.length - 1) divide(rb, i, tofix+1);
                             rb = i+1;
@@ -54,6 +60,7 @@
                         }
                     }
                     rectangles.push([rb, fixed, end, states.length-1]); //tofix]);
+                    if (tofix !== states.length - 1) divide(rb, end, tofix+1);
                 }
 
                 divide(0, word.length, 1);
@@ -68,7 +75,7 @@
                         circles.push([iw*D, iq*D, color[v[iw][iq]]]);
                     }
                 }
-                for (let [x1, y1, x2, y2] of e) arrows.push([x1*D, y1*D, x2*D, y2*D, (y1 !== y2)]);
+                for (let [x1, y1, x2, y2] of e) arrows.push([x1*D, y1*D, x2*D, y2*D, important[x1][y1]]);
 
                 for (let [x, y, color] of circles) {
                     ctx.beginPath();
@@ -77,11 +84,13 @@
                     ctx.fill();
                 }
                 
-                for (let [x1, y1, x2, y2, up] of arrows) {
+                for (let [x1, y1, x2, y2, important] of arrows) {
                     ctx.beginPath();
+                    if (important) ctx.lineWidth = 5;
                     ctx.moveTo(BW+x1, BH+y1);
                     ctx.lineTo(BW+x2, BH+y2);
                     ctx.stroke();
+                    ctx.lineWidth = 1;
                     // arrow(ctx, {x: x1, y: y1}, {x: x2, y: y2}, 10);
                 }
 
@@ -99,19 +108,37 @@
         <div style='flex: 10%'>
             Automaton (transitions).<br>
             <textarea id='aut' style='height: 50%; margin-bottom: 20px'>
-q0 a q1
-q0 b err
-q0 c q2
-q1 a q0
-q1 b q1
-q1 c q1
-q2 a q2
-q2 b q0
-q2 c q0
-err a err
-err b err
-err c err</textarea><br>
-            Word: <input type='text' id='word' value='aaabaabaabccababcaba'><br>
+q0 x err
+q1 x q1
+q2 x q2
+q3 x q3
+q4 x q4
+q0 1 q1
+q1 1 q2
+q2 1 q3
+q3 1 q4
+q4 1 q0
+q0 2 q2
+q1 2 q3
+q2 2 q4
+q3 2 q0
+q4 2 q1
+q0 3 q3
+q1 3 q4
+q2 3 q0
+q3 3 q1
+q4 3 q2
+q0 4 q4
+q1 4 q0
+q2 4 q1
+q3 4 q2
+q4 4 q3
+err x err
+err 1 err
+err 2 err
+err 3 err
+err 4 err</textarea><br>
+            Word: <input type='text' id='word' value='2x23xx22x23x23x22x3x1xx' onkeyup='draw()'><br>
             <button onclick='draw()'>Draw</button>
         </div>
         <div style='flex: 90%'>
